@@ -22,7 +22,7 @@ const minify = require('gulp-clean-css')
 const connect = require('gulp-connect')
 const autoprefixer = require('gulp-autoprefixer')
 
-const root = yargs.argv.root || '.'
+const root = yargs.argv.root || 'public'
 const port = yargs.argv.port || 8000
 
 const banner = `/*!
@@ -85,7 +85,7 @@ gulp.task('js-es5', () => {
         cache.umd = bundle.cache;
         return bundle.write({
             name: 'Reveal',
-            file: './dist/reveal.js',
+            file: './public/dist/reveal.js',
             format: 'umd',
             banner: banner,
             sourcemap: true
@@ -107,7 +107,7 @@ gulp.task('js-es6', () => {
     }).then( bundle => {
         cache.esm = bundle.cache;
         return bundle.write({
-            file: './dist/reveal.esm.js',
+            file: './public/dist/reveal.esm.js',
             format: 'es',
             banner: banner,
             sourcemap: true
@@ -180,14 +180,14 @@ function compileSass() {
 
 gulp.task('css-themes', () => gulp.src(['./css/theme/source/*.{sass,scss}'])
         .pipe(compileSass())
-        .pipe(gulp.dest('./dist/theme')))
+        .pipe(gulp.dest('./public/dist/theme')))
 
 gulp.task('css-core', () => gulp.src(['css/reveal.scss'])
     .pipe(compileSass())
     .pipe(autoprefixer())
     .pipe(minify({compatibility: 'ie9'}))
     .pipe(header(banner))
-    .pipe(gulp.dest('./dist')))
+    .pipe(gulp.dest('./public/dist')))
 
 gulp.task('css', gulp.parallel('css-themes', 'css-core'))
 

@@ -1,0 +1,64 @@
+.text-middle {
+  vertical-align: middle !important;
+}
+
+.cat-saying-no-text {
+  margin-bottom: auto !important;
+  -webkit-text-stroke: 2px black;
+}
+
+.con-true {
+  background: rgba(0,238,0,.11);
+  color:#0a0;
+}
+
+.con-false {
+  background: rgba(255,238,0,.3);
+  color:#d70;
+}
+
+.about-me {
+  display: flex;
+}
+
+.about-me__img {
+  width: 30%;
+}
+
+.about-me__description {
+  margin-left: 48px;
+}
+
+.about-me__paragraph {
+  text-align: left;
+}
+
+.about-me__twitter {
+  display: flex;
+}
+
+.about-me__icon {
+  margin: 0 !important;
+  margin-right: 20px !important;
+}
+
+.qr-link {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.qr-link--right {
+  justify-content: flex-end;
+}
+
+.qr-image {
+  width: 100px;
+  height: 100px;
+  padding-right: 20px;
+}
+
+.qr-image--right {
+  padding-left: 20px;
+  padding-right: 0px;
+}

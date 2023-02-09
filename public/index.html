@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
+  <title>JS Refactoring toolkit</title>
+
+  <link rel="stylesheet" href="dist/reset.css" />
+  <link rel="stylesheet" href="dist/reveal.css" />
+  <link rel="stylesheet" href="dist/code-mirror.css" />
+  <link rel="stylesheet" href="dist/custom.css" />
+  <link rel="stylesheet" href="dist/theme/black.css" />
+
+  <!-- Theme used for syntax highlighted code -->
+  <link rel="stylesheet" href="plugin/highlight/monokai.css" />
+</head>
+
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+      <section>
+        <section>
+          <h1 class="r-fit-text">JS Refactoring toolkit</h1>
+          <p class="fragment">Bartosz Szewczyk</p>
+          <p class="fragment">>5 @ Codete</p>
+        </section>
+        <section>
+          <img class="r-stretch" data-src="assets/half marathon.jpg" alt="Me after half marathon">
+        </section>
+        <section>
+          <video class="r-stretch" data-src="assets/video/descent.webm" controls="true"></video>
+          <div class="qr-link qr-link--right">
+            <img class="qr-image" data-src="assets/descent url qr.png" alt="url qr code"><a href="https://www.newgrounds.com/portal/view/780543">Game URL</a>
+          </div>
+        </section>
+      </section>
+
+      <section id="Overview">
+        <section>
+          <h1>Overview</h1>
+          <ol>
+            <li class="fragment">Problem explanation</li>
+            <li class="fragment">Regular expressions</li>
+            <li class="fragment">Comby.dev</li>
+            <li class="fragment">Jscodeshift (codemods)</li>
+            <li class="fragment">Summary</li>
+          </ol>
+        </section>
+      </section>
+
+      <section id="Problem">
+        <section>
+          <h1>Problem:</h1>
+          <p>Rewriting code can be hard</p>
+        </section>
+        <section data-auto-animate>
+          <h2>Example</h2>
+          <h5>Styled system v4</h5>
+          <pre data-id="code-animation"><code data-trim data-line-numbers="|6|13"><script type="text/template">
+import styled from '@emotion/styled';
+import {
+  typography,
+  space,
+  color,
+  themeGet
+} from 'styled-system';
+
+const Box = styled.div`
+  ${typography}
+  ${space}
+  ${color}
+  background-color: ${props => themeGet('colors.brand')}
+`;
+          </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h2>Example</h2>
+          <h5>Styled system v5</h5>
+          <pre data-id="code-animation"><code data-trim data-line-numbers="|7"><script type="text/template">
+import styled from '@emotion/styled';
+import {
+  typography,
+  space,
+  color,
+} from 'styled-system';
+import { themeGet } from '@styled-system/theme-get';
+
+const Box = styled.div`
+  ${typography}
+  ${space}
+  ${color}
+  background-color: ${props => themeGet('colors.brand')}
+`;
+          </script></code></pre>
+        </section>
+        <section>
+          <h2>Breaking change</h2>
+          <h1>😵</h1>
+        </section>
+      </section>
+
+      <section id="Complexity">
+        <section>
+          <h1>Complexity</h1>
+        </section>
+        <section data-transition="fade">
+          <h2>Scenario #1</h2>
+          <pre data-id="code-animation"><code data-trim data-line-numbers><script type="text/template">
+import { themeGet } from 'styled-system';
+            </script></code></pre>
+        </section>
+        <section data-transition="fade">
+          <h2>Scenario #2</h2>
+          <pre data-id="code-animation"><code data-trim data-line-numbers><script type="text/template">
+import { typography, themeGet } from 'styled-system';
+            </script></code></pre>
+        </section>
+        <section data-transition="fade">
+          <h2>Scenario #3</h2>
+          <pre data-id="code-animation"><code data-trim data-line-numbers><script type="text/template">
+import { themeGet, space } from 'styled-system';
+            </script></code></pre>
+        </section>
+        <section data-transition="fade">
+          <h2>Scenario #4</h2>
+          <pre data-id="code-animation"><code data-trim data-line-numbers><script type="text/template">
+import { typography, themeGet, space } from 'styled-system';
+            </script></code></pre>
+        </section>
+        <section data-transition="fade" data-auto-animate>
+          <h2>Scenario #5</h2>
+          <pre data-id="code-animation"><code data-trim data-line-numbers="4" class="language-js"><script type="text/template">
+import {
+  color,
+  typography,
+  themeGet,
+  space,
+  layout
+} from 'styled-system';
+            </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h2>Scenario #6</h2>
+          <pre data-id="code-animation"><code data-trim data-line-numbers="2" class="language-js"><script type="text/template">
+import {
+  themeGet,
+  color,
+  typography,
+  space,
+  layout
+} from 'styled-system';
+            </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h2>Scenario #7</h2>
+          <pre data-id="code-animation"><code data-trim data-line-numbers="6" class="language-js"><script type="text/template">
+import {
+  color,
+  typography,
+  space,
+  layout,
+  themeGet
+} from 'styled-system';
+            </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h1>Bonus cases</h1>
+          <p>Not covered</p>
+        </section>
+        <section data-auto-animate>
+          <h2>Scenario #8</h2>
+          <pre data-id="code-animation"><code data-trim data-line-numbers="6" class="language-js"><script type="text/template">
+import {
+  themeGet as styledSystemThemeGet
+} from 'styled-system';
+            </script></code></pre>
+        </section>
+        <section data-auto-animate>
+          <h2>Scenario #9</h2>
+          <pre data-id="code-animation"><code data-trim data-line-numbers="6" class="language-js"><script type="text/template">
+import * as styledSystem from 'styled-system';
+
+styledSystem.themeGet('color.brand');
+            </script></code></pre>
+        </section>
+      </section>
+
+      <section id="1. Regexp">
+        <section>
+          <h1>Regular expressions</h1>
+          <p class="fragment">String that specifies a <i>search pattern</i></p>
+        </section>
+        <section>
+          <div class="CodeMirror-code" role="presentation">
+            <pre class=" CodeMirror-line "
+              role="presentation"><span role="presentation"><span class=" exp-decorator exp-open">/</span><span class=" exp-group exp-group-0">(</span><span class=" exp-group-0 exp-char">i</span><span class=" exp-group-0 exp-char">m</span><span class=" exp-group-0 exp-char">p</span><span class=" exp-group-0 exp-char">o</span><span class=" exp-group-0 exp-char">r</span><span class=" exp-group-0 exp-char">t</span><span class=" exp-group-0 exp-char"><span class="cm-space" cm-text=" "> </span></span><span class=" exp-group-0 exp-char">{</span><span class=" exp-group-0 exp-set exp-group-set">[</span><span class=" exp-group-0 exp-group-set exp-charclass">\s</span><span class=" exp-group-0 exp-group-set exp-charclass">\S</span><span class=" exp-group-0 exp-group-set exp-set">]</span><span class=" exp-group-0 exp-quant">*</span><span class=" exp-group-0 exp-group">)</span><span class=" exp-group exp-group-0">(</span><span class=" exp-group-0 exp-char">t</span><span class=" exp-group-0 exp-char">h</span><span class=" exp-group-0 exp-char">e</span><span class=" exp-group-0 exp-char">m</span><span class=" exp-group-0 exp-char">e</span><span class=" exp-group-0 exp-char">G</span><span class=" exp-group-0 exp-char">e</span><span class=" exp-group-0 exp-char">t</span><span class=" exp-group-0 exp-char">,</span><span class=" exp-group-0 exp-group">)</span><span class=" exp-group exp-group-0">(</span><span class=" exp-group-0 exp-set exp-group-set">[</span><span class=" exp-group-0 exp-group-set exp-charclass">\s</span><span class=" exp-group-0 exp-group-set exp-charclass">\S</span><span class=" exp-group-0 exp-group-set exp-set">]</span><span class=" exp-group-0 exp-quant">*</span><span class=" exp-group-0 exp-char">}</span><span class=" exp-group-0 exp-char"><span class="cm-space" cm-text=" "> </span></span><span class=" exp-group-0 exp-char">f</span><span class=" exp-group-0 exp-char">r</span><span class=" exp-group-0 exp-char">o</span><span class=" exp-group-0 exp-char">m</span><span class=" exp-group-0 exp-char"><span class="cm-space" cm-text=" "> </span></span><span class=" exp-group-0 exp-char">'</span><span class=" exp-group-0 exp-char">s</span><span class=" exp-group-0 exp-char">t</span><span class=" exp-group-0 exp-char">y</span><span class=" exp-group-0 exp-char">l</span><span class=" exp-group-0 exp-char">e</span><span class=" exp-group-0 exp-char">d</span><span class=" exp-group-0 exp-char">-</span><span class=" exp-group-0 exp-char">s</span><span class=" exp-group-0 exp-char">y</span><span class=" exp-group-0 exp-char">s</span><span class=" exp-group-0 exp-char">t</span><span class=" exp-group-0 exp-char">e</span><span class=" exp-group-0 exp-char">m</span><span class=" exp-group-0 exp-char">'</span><span class=" exp-group-0 exp-char">;</span><span class=" exp-group-0 exp-group">)</span><span class=" exp-decorator exp-close">/</span><span class=" exp-decorator exp-global">g</span></span></pre>
+          </div>
+        </section>
+        <section>
+          <div style="width: 50%; margin: 0 auto;">
+            <div class="CodeMirror-code" role="presentation">
+              <pre class=" CodeMirror-line " role="presentation"><span role="presentation">
+<span class=" exp-group exp-group-0">(</span><span class=" exp-group-0 exp-char">i</span><span class=" exp-group-0 exp-char">m</span><span class=" exp-group-0 exp-char">p</span><span class=" exp-group-0 exp-char">o</span><span class=" exp-group-0 exp-char">r</span><span class=" exp-group-0 exp-char">t</span><span class=" exp-group-0 exp-char"><span class="cm-space" cm-text=" "> </span></span><span class=" exp-group-0 exp-char">{</span><span class=" exp-group-0 exp-set exp-group-set">[</span><span class=" exp-group-0 exp-group-set exp-charclass">\s</span><span class=" exp-group-0 exp-group-set exp-charclass">\S</span><span class=" exp-group-0 exp-group-set exp-set">]</span><span class=" exp-group-0 exp-quant">*</span><span class=" exp-group-0 exp-group">)</span>
+<span class=" exp-group exp-group-0">(</span><span class=" exp-group-0 exp-char">t</span><span class=" exp-group-0 exp-char">h</span><span class=" exp-group-0 exp-char">e</span><span class=" exp-group-0 exp-char">m</span><span class=" exp-group-0 exp-char">e</span><span class=" exp-group-0 exp-char">G</span><span class=" exp-group-0 exp-char">e</span><span class=" exp-group-0 exp-char">t</span><span class=" exp-group-0 exp-char">,</span><span class=" exp-group-0 exp-quant">?</span><span class=" exp-group-0 exp-group">)</span>
+<span class=" exp-group exp-group-0">(</span><span class=" exp-group-0 exp-set exp-group-set">[</span><span class=" exp-group-0 exp-group-set exp-charclass">\s</span><span class=" exp-group-0 exp-group-set exp-charclass">\S</span><span class=" exp-group-0 exp-group-set exp-set">]</span><span class=" exp-group-0 exp-quant">*</span><span class=" exp-group-0 exp-char">}</span><span class=" exp-group-0 exp-char"><span class="cm-space" cm-text=" "> </span></span><span class=" exp-group-0 exp-char">f</span><span class=" exp-group-0 exp-char">r</span><span class=" exp-group-0 exp-char">o</span><span class=" exp-group-0 exp-char">m</span><span class=" exp-group-0 exp-char"><span class="cm-space" cm-text=" "> </span></span><span class=" exp-group-0 exp-char">'</span><span class=" exp-group-0 exp-char">s</span><span class=" exp-group-0 exp-char">t</span><span class=" exp-group-0 exp-char">y</span><span class=" exp-group-0 exp-char">l</span><span class=" exp-group-0 exp-char">e</span><span class=" exp-group-0 exp-char">d</span><span class=" exp-group-0 exp-char">-</span><span class=" exp-group-0 exp-char">s</span><span class=" exp-group-0 exp-char">y</span><span class=" exp-group-0 exp-char">s</span><span class=" exp-group-0 exp-char">t</span><span class=" exp-group-0 exp-char">e</span><span class=" exp-group-0 exp-char">m</span><span class=" exp-group-0 exp-char">'</span><span class=" exp-group-0 exp-char">;</span><span class=" exp-group-0 exp-group">)</span>
+</span></pre>
+            </div>
+          </div>
+        </section>
+        <section data-background-image="assets/regex1.png"></section>
+        <section data-background-image="assets/regex2.png"></section>
+        <section data-background-image="assets/regex3.png"></section>
+        <section data-background-image="assets/regex4.png"></section>
+        <section data-background-image="assets/regex5.png"></section>
+        <section data-background-image="assets/regex6.png"></section>
+        <section data-background-image="assets/regex7.png"></section>
+        <section>
+          <h1>How to use it?</h1>
+          <h2>
+            🤔
+          </h2>
+        </section>
+        <section>
+          <h3>
+            Useful tool #1
+          </h3>
+          <p>Your code editor/IDE</p>
+          <img data-src="assets/editor-regexp.png" alt="Regexp in Vs-code">
+        </section>
+        <section>
+          <h3>
+            Useful tool #2
+          </h3>
+          <p>Perl interpreter 🤓</p>
+          <pre><code class="language-sh" data-line-numbers="|1-5|7-10|12">MATCH="\
+(import {[\s\S]*)\
+(themeGet,?)\
+([\s\S]*} from 'styled-system';)\
+"
+
+REPLACE="\
+\1\3
+import { themeGet } from '\@styled-system/theme-get'\;
+"
+
+perl -i -0pe "s|$MATCH|$REPLACE|gm" src/**/*.js
+          </code></pre>
+        </section>
+        <section>
+          <h3>
+            Useful tool #3
+          </h3>
+          <p>Just use any scripting language</p>
+          <pre><code class="language-js" data-line-numbers="|8-9|11|12-14">const fs = require('fs')
+const glob = require('glob')
+const regexp = /.../g
+const replace = '...'
+
+glob('src/**/*.{ts,tsx}', (err, files) => {
+  files.forEach(filename => {
+    const contents =
+      fs.readFileSync(filename, { encoding: 'utf-8' })
+
+    if (contents.indexOf('themeGet') !== -1) {
+      fs.writeFileSync(
+        filename,
+        contents.replace(regexp, replace)
+      )
+    }
+  })
+})</code></pre>
+        </section>
+        <section>
+          <h3>Pros:</h3>
+          <ol>
+            <li class="fragment">Widely supported</li>
+            <li class="fragment">Ton of tutorials</li>
+            <li class="fragment">Lot's of assist tools</li>
+          </ol>
+        </section>
+        <section>
+          <h3>Cons:</h3>
+          <ol>
+            <li class="fragment">Low maintainability</li>
+            <li class="fragment">Low readability</li>
+            <li class="fragment">Doesn't scale</li>
+            <li class="fragment">Need 2 replaces</li>
+          </ol>
+        </section>
+        <section data-transition="fade">
+          <h2>Scenario #1 <small class="fragment text-middle">(reminder)</small></h2>
+          <pre data-id="code-animation"><code data-trim data-line-numbers><script type="text/template">
+  import { themeGet } from 'styled-system';
+            </script></code></pre>
+            <p class="fragment">🧙‍♀️ regexp magic 🧙</p>
+            <pre class="fragment" data-id="code-animation"><code data-trim data-line-numbers><script type="text/template">
+  import { } from 'styled-system';
+  import { themeGet } from '@styled-system/theme-get';
+              </script></code></pre>
+        </section>
+      </section>
+      
+      <section id="2. Comby.dev">
+        <section>
+          <h1>Comby.dev</h1>
+          <img width="500" height="250" data-src="assets/comby-logo.svg" alt="comby-logo">
+          <p class="fragment">Comby is a tool for searching and rewriting code</p>
+        </section>
+        <section>
+          <h3>
+            Highlights
+          </h3>
+          <ol>
+            <li class="fragment">Capturing groups (regexp) -> Holes</li>
+            <li class="fragment">Holes can be named</li>
+            <li class="fragment">Holes can (optionally) accept regexp</li>
+            <li class="fragment">No need to escape any chars <span class="fragment">(really!)</span></li>
+          </ol>
+        </section>
+        <section>
+          <h3>What is comby.dev syntax</h3>
+          <ul>
+            <li class="fragment">named hole <code>:[var]</code></li>
+            <li class="fragment">named hole with regex <code>:[var~regex]</code></li>
+            <li class="fragment">nameless hole with regex<code>:[~regex]</code></li>
+          </ul>
+        </section>
+        <section>
+          Imagine that we want to replace
+          <pre class="fragment"><code data-trim class="language-js"><script type="text/template">
+            foo.bar(argument)
+          </script></code></pre>
+          <div class="fragment">Into ♻️</div>
+          <pre class="fragment"><code data-trim class="language-js"><script type="text/template">
+            foobar(unwrap(argument))
+          </script></code></pre>
+        </section>
+        <section>
+          <h1>How we can solve it with regex?</h1>
+        </section>
+        <section data-background-image="assets/foobar regex.png"></section>
+        <section data-background-image="assets/foobar regex details.png"></section>
+        <section data-background-image="assets/foobar regex lazy.png"></section>
+        <section>
+          <h1>Time for Comby.dev</h1>
+          <img data-src="assets/ready.gif">
+        </section>
+        <section data-background-image="assets/foobar comby.png"></section>
+        <section data-background-image="assets/foobar comby2.png"></section>
+        <section>
+          <h1>Some useful comby.dev features</h1>
+        </section>
+        <section data-background-image="assets/comby rewrite.png"></section>
+        <section>
+          <h1>Let's use Comby.dev for <code>themeGet</code> import</h1>
+        </section>
+        <section data-background-image="assets/comby1.png"></section>
+        <section data-background-image="assets/comby2.png"></section>
+        <section data-background-image="assets/comby3.png"></section>
+        <section data-background-image="assets/comby4.png"></section>
+        <section data-background-image="assets/comby5.png"></section>
+        <section data-background-image="assets/comby6.png"></section>
+        <section data-background-image="assets/comby7.png"></section>
+        <section>
+          <h3>CLI</h3>
+          <pre><code class="language-sh" data-line-numbers="|1-6|8-12|14">COMBY_M="$(cat <<"MATCH"
+import {
+:[before]themeGet:[~,?]:[after]
+} from 'styled-system'
+MATCH
+)"
+
+COMBY_R="$(cat <<"REWRITE"
+import {:[before]:[after]} from 'styled-system'
+import { themeGet } from '@styled-system/theme-get'
+REWRITE
+)"
+
+comby "$COMBY_M" "$COMBY_R" .js -i -d src</code></pre>
+        </section>
+        <section>
+          <h3>Pros:</h3>
+          <ol>
+            <li class="fragment">Super easy</li>
+            <li class="fragment">Dedicated for code</li>
+            <li class="fragment">Web playground for testing</li>
+            <li class="fragment">Dedicated gitter channel</li>
+            <li class="fragment">Ready-to-use cli command</li>
+          </ol>
+        </section>
+        <section>
+          <h3>Cons:</h3>
+          <ol>
+            <li class="fragment">Low maintainability <span class="fragment con-true">true</span></li>
+            <li class="fragment">Low readability <span class="fragment con-false">false</span></li>
+            <li class="fragment">Doesn't scale <span class="fragment con-true">true</span></li>
+            <li class="fragment">Need 2 replaces <span class="fragment con-true">true</span></li>
+          </ol>
+        </section>
+      </section>
+
+      <section id="3. Codemods">
+        <section>
+          <h1>JsCodeShift</h1>
+          <h3>aka Codemods</h3>
+        </section>
+        <section>
+          <h3>What are codemods</h3>
+          <p>Code that rewrites code</p>
+          <div class="r-stack">
+            <p class="fragment">Code that operate on code</p>
+            <p class="fragment reveal-viewport reveal">Code that operate on <span style="text-decoration: line-through;">code</span> AST</p>
+          </div>
+        </section>
+        <section>
+          <h3>
+            Video of AST explorer
+          </h3>
+          <div class="fragment">
+            <p>light mode warning ⚠️</p>
+            <img data-src="assets/gifs/light mode.gif" alt="Light mode alert">
+          </div>
+        </section>
+        <section>
+          <video src="assets/video/ast-explorer.webm" controls="true"></video>
+        </section>
+        <section>
+          <h3>JsCodeShift API showcase</h3>
+          <pre data-id="code-animation"><code data-trim data-line-numbers="|4|5|6|7|8" class="language-js">
+export const transform = (fileInfo, api) => {
+  const { jscodeshift: j } = api;
+
+  return j(fileInfo.source)
+    .find(/* styled-system import with themeGet */)
+    .replaceWith(/* import without themeGet */)
+    .insertAfter(/* @styled-system/theme-get import */)
+    .toSource();
+};
+          </code></pre>
+        </section>
+        <section>
+          <h3>
+            Time for for codmod writing
+          </h3>
+          <img data-src="assets/gifs/live coding.gif" alt="Live coding gif">
+        </section>
+        <section>
+          <video src="assets/video/codemod live coding.webm" controls="true"></video>
+        </section>
+        <section>
+          <pre data-id="code-animation"><code data-trim data-line-numbers="|4-6|9-13|15-19|21-27|30-35" class="language-ts">
+const transform: Transform = (fileInfo, api) => {
+  const { jscodeshift: j } = api;
+
+  const isThemeGet = (specifier) =>
+    specifier.type === 'ImportSpecifier' &&
+    specifier.imported.name === 'themeGet';
+
+  return j(fileInfo.source)
+    .find(j.ImportDeclaration, {
+      source: { value: 'styled-system' },
+      specifiers: (specifiers) =>
+        specifiers?.some(isThemeGet) ?? false,
+    })
+    .replaceWith(({ node }) => {
+      const specifiersWithoutThemeGet =
+        node.specifiers?.filter(
+          (specifier) =>
+            !isThemeGet(specifier)
+        ) ?? [];
+
+      return specifiersWithoutThemeGet.length > 0
+        ? j.importDeclaration(
+            specifiersWithoutThemeGet,
+            node.source,
+            node.importKind
+          )
+        : null;
+    })
+    .insertAfter(
+      j.template
+        .statement`
+          import {
+            theme-get
+          } from '@styled-system/theme-get'
+        `
+    )
+    .toSource();
+};
+          </code></pre>
+        </section>
+        <section>
+          <h3>Usage</h3>
+          <p>cli</p>
+          <pre><code class="language-sh">
+jscodeshift -t theme-get.ts src/**/*.js
+          </code></pre>
+        </section>
+        <section>
+          <h3>Bonus</h3>
+          <p class="fragment">Code can be easily unit tested</p>
+        </section>
+        <section>
+          <pre data-id="code-animation"><code data-trim data-line-numbers="|5|8-9" class="language-ts">
+defineInlineTest(
+  transform,
+  {},
+  `
+import { a, themeGet, b } from 'styled-system';
+  `,
+  `
+import { a, b } from 'styled-system';
+import { themeGet } from '@styled-system/theme-get';
+  `
+)
+          </code></pre>
+        </section>
+        <section>
+          <h3>Pros:</h3>
+          <ol>
+            <li class="fragment">Extremely powerful</li>
+            <li class="fragment">Typescript support</li>
+            <li class="fragment">Easy setup for unit tests</li>
+          </ol>
+        </section>
+        <section>
+          <h3>Cons:</h3>
+          <ol>
+            <li class="fragment">Low maintainability <span class="fragment con-false">false</span></li>
+            <li class="fragment">Low readability <span class="fragment con-false">false</span></li>
+            <li class="fragment">Doesn't scale <span class="fragment con-false">false</span></li>
+            <li class="fragment">Need 2 replaces <span class="fragment con-false">false</span></li>
+            <li class="fragment">Poor documentation</li>
+            <li class="fragment">Entry barrier <span class="fragment">(not <b>that</b> scary)</span></li>
+          </ol>
+        </section>
+      </section>
+
+      <section id="Summary">
+        <section>
+          <h1>Summary 📋</h1>
+          <p class="fragment">Is there the best option?</p>
+          <div class="fragment fade-up r-stack">
+            <img data-src="assets/grumpy.jpg" alt="Cat with face that says no">
+            <h1 class="cat-saying-no-text">No</h1>
+          </div>
+        </section>
+        <section>
+          <h3>What to keep in mind <span class="fragment">(a recap 📝)</span></h3>
+          <ol>
+            <li class="fragment">Regular expressions <b>are</b> useful to know</li>
+            <li class="fragment">Comby is super easy for simple code rewrite</li>
+            <li class="fragment">Codemods takes time for setup but outmatches others in complicated cases</li>
+          </ol>
+        </section>
+        <section>
+          <h1>Thank you</h1>
+          <div class="about-me">
+            <div class="about-me__img">
+              <img data-src="assets/about-me.jpg" alt="my face">
+            </div>
+            <div class="about-me__description">
+              <p class="about-me__paragraph">Bartosz Szewczyk</p>
+              <p class="about-me__paragraph fragment fade-up">👨🏼‍💻 Tech Lead @ Codete</p>
+              <p class="about-me__paragraph about-me__twitter fragment fade-up">
+                <img class="about-me__icon" data-src="assets/twitter.svg" width="50" height="50" alt="twitter-icon" /> @sztobar
+              </p>
+            </div>
+          </div>
+        </section>
+        <section>
+          <img data-src="assets/gifs/thank you.gif" alt="Thank you gif">
+        </section>
+        <section>
+          <h3>
+            Useful links
+          </h3>
+          <div class="qr-link">
+            <img width="100px" height="100px" class="qr-image" data-src="assets/comby qr.png" alt="comby.dev talk qr code"><a href="https://youtu.be/JMZLBB_BFNg">comby.dev</a>&nbsp;how-it-works talk
+          </div>
+          <div class="qr-link">
+            <img class="qr-image" data-src="assets/regexr qr.png" alt="regexr.com qr code"><a href="https://regexr.com/">regexr.com</a>&nbsp;a js regexp assist tool
+          </div>
+          <div class="qr-link">
+            <img class="qr-image" data-src="assets/my-codemod qr.png" alt="themeget codemod github repo qr code"><a href="https://github.com/sztobar/jscodeshift-theme-get-styled-system-v5">jscodeshift-theme-get-styled-system-v5</a>&nbsp;themeGet codemod (with bonus cases covered!)
+          </div>
+        </section>
+      </section>
+    </div>
+  </div>
+
+  <script src="dist/reveal.js"></script>
+  <script src="plugin/zoom/zoom.js"></script>
+  <script src="plugin/notes/notes.js"></script>
+  <script src="plugin/search/search.js"></script>
+  <script src="plugin/markdown/markdown.js"></script>
+  <script src="plugin/highlight/highlight.js"></script>
+  <script>
+    // More info about initialization & config:
+    // - https://revealjs.com/initialization/
+    // - https://revealjs.com/config/
+    Reveal.initialize({
+      controls: true,
+      progress: true,
+      center: true,
+      hash: true,
+
+      // Learn about plugins: https://revealjs.com/plugins/
+      plugins: [RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight]
+    });
+  </script>
+</body>
+
+</html>
